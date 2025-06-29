@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>S.V Car Rentals</title>
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    header { background: #1e88e5; color: white; padding: 20px; text-align: center; }
+    .container { padding: 20px; }
+    .car-card { background: white; padding: 15px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .car-card h3 { margin-top: 0; }
+    .car-card button { background: #1e88e5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; position: relative; }
+    .tabs { display: flex; margin-bottom: 10px; }
+    .tabs button { flex: 1; padding: 10px; cursor: pointer; background: #eee; border: none; }
+    .tabs button.active { background: #1e88e5; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-weight: bold; font-size: 18px; }
+    input, textarea, select { width: 100%; padding: 8px; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <header><h1>S.V Car Rentals</h1><p>24/7 Available</p></header>
+  <div class="container">
+    <div class="car-card">
+      <h3>Innova Crysta GX (8-Seater)</h3>
+      <p>₹18/km or ₹3000/day</p>
+      <button onclick="openModal('Innova Crysta GX')">Book Now</button>
+    </div>
+    <div class="car-card">
+      <h3>Ertiga VXI (8-Seater)</h3>
+      <p>₹14/km or ₹2000/day</p>
+      <button onclick="openModal('Ertiga VXI')">Book Now</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="bookingModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">×</span>
+      <h2 id="carName"></h2>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('exterior')">Exterior</button>
+        <button class="tab-btn" onclick="showTab('interior')">Interior</button>
+      </div>
+      <div class="tab-content active" id="exterior">
+        <img src="https://via.placeholder.com/400x200?text=Exterior+Image" width="100%" />
+      </div>
+      <div class="tab-content" id="interior">
+        <img src="https://via.placeholder.com/400x200?text=Interior+Image" width="100%" />
+      </div>
+      <form id="bookingForm">
+        <input type="hidden" name="car" id="selectedCar" />
+        <label>From Date:</label><input type="text" name="from" id="fromDate" required />
+        <label>To Date:</label><input type="text" name="to" id="toDate" required />
+        <label>Pickup Time:</label><input type="time" name="pickup_time" required />
+        <label>Name:</label><input type="text" name="name" required />
+        <label>Phone:</label><input type="tel" name="phone" required />
+        <label>Address:</label><textarea name="address" required></textarea>
+        <button type="submit">Submit Booking</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS includes -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    emailjs.init("1OlbB7KuxQgffRNaU");
+
+    flatpickr("#fromDate", { dateFormat: "Y-m-d" });
+    flatpickr("#toDate", { dateFormat: "Y-m-d" });
+
+    function openModal(car) {
+      document.getElementById('bookingModal').style.display = 'flex';
+      document.getElementById('carName').innerText = car;
+      document.getElementById('selectedCar').value = car;
+    }
+
+    function closeModal() {
+      document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      emailjs.sendForm('service_dh0vj9k', 'template_iu1na9m', this)
+        .then(() => {
+          alert('Booking sent successfully!');
+          closeModal();
+          this.reset();
+        }, (error) => {
+          alert('Failed to send: ' + error.text);
+        });
+    });
+  </script>
+</body>
+</html>
