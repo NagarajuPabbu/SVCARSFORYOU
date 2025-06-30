@@ -120,6 +120,11 @@
         if (diff > 0) {
           document.getElementById('totalDays').innerText = diff;
           document.getElementById('totalAmountDays').innerText = diff * dayRate;
+        // Set hidden fields for email
+      document.getElementById('totalDaysField').value = diff;
+      document.getElementById('totalKmsField').value = '';
+      document.getElementById('totalAmountField').value = diff * dayRate;
+        
         }
       }
     }
@@ -129,6 +134,10 @@
       const kmRate = parseFloat(document.getElementById('pricePerKm').value);
       if (!isNaN(kms) && !isNaN(kmRate)) {
         document.getElementById('totalAmountKms').innerText = kms * kmRate;
+     // Set hidden fields for email 
+    document.getElementById('totalKmsField').value = kms;
+    document.getElementById('totalDaysField').value = '';
+    document.getElementById('totalAmountField').value = total;
       }
     }
 
