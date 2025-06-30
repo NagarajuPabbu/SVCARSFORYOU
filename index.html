@@ -5,9 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="google-site-verification" content="OQOU2FITow7WHHVO3gZpK_XI-XQUcjEflMauN6MB4lQ" />
- <meta name="description" content="Book Innova or Ertiga on rent with S.V Car Rentals. 24/7 driver service in Nalgonda, Telangana. Best price guaranteed.">
-<meta name="keywords" content="car rentals Telangana, Nalgonda car booking, Innova hire, Ertiga rental, taxi service Narketpally">
-<meta name="author" content="S.V Car Rentals">
+  <meta name="description" content="Book Innova or Ertiga on rent with S.V Car Rentals. 24/7 driver service in Nalgonda, Telangana. Best price guaranteed.">
+  <meta name="keywords" content="car rentals Telangana, Nalgonda car booking, Innova hire, Ertiga rental, taxi service Narketpally">
+  <meta name="author" content="S.V Car Rentals">
   <title>S.V Car Rentals</title>
   <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/>
   <style>
@@ -19,11 +19,11 @@
     .car-card button { background: #1e88e5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; position: relative; }
-    .tabs { display: flex; margin-bottom: 10px; }
+    .tabs { display: flex; margin: 10px 0; }
     .tabs button { flex: 1; padding: 10px; cursor: pointer; background: #eee; border: none; }
     .tabs button.active { background: #1e88e5; color: white; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
     .close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-weight: bold; font-size: 18px; }
     input, textarea, select { width: 100%; padding: 8px; margin: 8px 0; }
   </style>
@@ -34,12 +34,12 @@
     <div class="car-card">
       <h3>Innova Crysta GX (8-Seater)</h3>
       <p>₹18/km or ₹3000/day</p>
-      <button onclick="openModal('Innova Crysta GX')">Book Now</button>
+      <button onclick="openModal('Innova Crysta GX', 18, 3000)">Book Now</button>
     </div>
     <div class="car-card">
       <h3>Ertiga VXI (8-Seater)</h3>
       <p>₹14/km or ₹2000/day</p>
-      <button onclick="openModal('Ertiga VXI')">Book Now</button>
+      <button onclick="openModal('Ertiga VXI', 14, 2000)">Book Now</button>
     </div>
   </div>
 
@@ -48,13 +48,30 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal()">×</span>
       <h2 id="carName"></h2>
-      
-      
       <form id="bookingForm">
         <input type="hidden" name="car" id="selectedCar" />
+        <input type="hidden" id="pricePerKm" />
+        <input type="hidden" id="pricePerDay" />
+
         <label>From Date:</label><input type="text" name="from" id="fromDate" required />
         <label>To Date:</label><input type="text" name="to" id="toDate" required />
         <label>Pickup Time:</label><input type="time" name="pickup_time" required />
+
+        <div class="tabs">
+          <button type="button" class="tab-btn active" onclick="switchTab('days')">Days</button>
+          <button type="button" class="tab-btn" onclick="switchTab('kms')">KMs</button>
+        </div>
+
+        <div id="days" class="tab-section active">
+          <p><strong>Total Days:</strong> <span id="totalDays">0</span></p>
+          <p><strong>Total Amount:</strong> ₹<span id="totalAmountDays">0</span> <br><small>*excluding driver and toll charges</small></p>
+        </div>
+
+        <div id="kms" class="tab-section">
+          <label>Total KMs:</label><input type="number" id="totalKmsInput" min="1" onchange="calculateKmsAmount()" />
+          <p><strong>Total Amount:</strong> ₹<span id="totalAmountKms">0</span> <br><small>*excluding driver and toll charges</small></p>
+        </div>
+
         <label>Name:</label><input type="text" name="name" required />
         <label>Phone:</label><input type="tel" name="phone" required />
         <label>Address:</label><textarea name="address" required></textarea>
@@ -69,24 +86,50 @@
   <script>
     emailjs.init("1OlbB7KuxQgffRNaU");
 
-    flatpickr("#fromDate", { dateFormat: "Y-m-d" });
-    flatpickr("#toDate", { dateFormat: "Y-m-d" });
+    flatpickr("#fromDate", { dateFormat: "Y-m-d", onChange: calculateDays });
+    flatpickr("#toDate", { dateFormat: "Y-m-d", onChange: calculateDays });
 
-    function openModal(car) {
+    function openModal(car, kmRate, dayRate) {
       document.getElementById('bookingModal').style.display = 'flex';
       document.getElementById('carName').innerText = car;
       document.getElementById('selectedCar').value = car;
+      document.getElementById('pricePerKm').value = kmRate;
+      document.getElementById('pricePerDay').value = dayRate;
+      calculateDays();
     }
 
     function closeModal() {
       document.getElementById('bookingModal').style.display = 'none';
     }
 
-    function showTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+    }
+
+    function calculateDays() {
+      const from = document.getElementById('fromDate').value;
+      const to = document.getElementById('toDate').value;
+      const dayRate = parseFloat(document.getElementById('pricePerDay').value);
+      if (from && to) {
+        const date1 = new Date(from);
+        const date2 = new Date(to);
+        const diff = Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24)) + 1;
+        if (diff > 0) {
+          document.getElementById('totalDays').innerText = diff;
+          document.getElementById('totalAmountDays').innerText = diff * dayRate;
+        }
+      }
+    }
+
+    function calculateKmsAmount() {
+      const kms = parseFloat(document.getElementById('totalKmsInput').value);
+      const kmRate = parseFloat(document.getElementById('pricePerKm').value);
+      if (!isNaN(kms) && !isNaN(kmRate)) {
+        document.getElementById('totalAmountKms').innerText = kms * kmRate;
+      }
     }
 
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
@@ -103,3 +146,5 @@
   </script>
 </body>
 </html>
+
+
